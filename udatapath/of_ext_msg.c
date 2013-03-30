@@ -153,6 +153,8 @@ recv_of_exp_queue_modify(struct datapath *dp,
 
     int error = 0;
     uint16_t port_no;
+    uint16_t prop;
+    uint16_t rate;
     uint32_t queue_id;
     uint16_t min_rate = OFPQ_MIN_RATE_UNCFG;
     uint16_t max_rate = OFPQ_MAX_RATE_UNCFG;

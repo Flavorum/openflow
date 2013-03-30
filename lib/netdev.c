@@ -238,17 +238,23 @@ netdev_setup_root_class(const struct netdev *netdev, uint16_t class_id,
  */
 int
 netdev_setup_class(const struct netdev *netdev, uint16_t class_id,
-                   uint16_t rate)
+                   uint16_t min_rate, uint16_t max_rate)
 {
     char command[1024];
-    int actual_rate;
+    int actual_min_rate;
+    int actual_max_rate;
+
+    if (netdev == NULL) {
+        return 0;
+    }
 
     /* we need to translate from .1% to kbps */
-    actual_rate = rate*netdev->speed;
+    actual_min_rate = min_rate*netdev->speed;
+    actual_max_rate = max_rate*netdev->speed;
 
     snprintf(command, sizeof(command), COMMAND_ADD_CLASS, netdev->name,
-             TC_QDISC, TC_ROOT_CLASS, TC_QDISC, class_id, actual_rate,
-             netdev->speed*1000);
+             TC_QDISC, TC_ROOT_CLASS, TC_QDISC, class_id, actual_min_rate,
+             actual_max_rate);
     if (system(command) != 0) {
         VLOG_ERR("Problem configuring class %d for device %s",class_id,
                  netdev->name);
@@ -269,17 +275,25 @@ netdev_setup_class(const struct netdev *netdev, uint16_t class_id,
  * successful.
  */
 int
-netdev_change_class(const struct netdev *netdev, uint16_t class_id, uint16_t rate)
+netdev_change_class(const struct netdev *netdev, uint16_t class_id, uint16_t min_rate,
+                    uint16_t max_rate)
 {
     char command[1024];
-    int actual_rate;
+    int actual_min_rate;
+    int actual_max_rate;
+
+    if (netdev == NULL) {
+        return 0;
+    }
 
     /* we need to translate from .1% to kbps */
-    actual_rate = rate*netdev->speed;
+    actual_min_rate = min_rate*netdev->speed;
+    actual_max_rate = max_rate*netdev->speed;
 
     snprintf(command, sizeof(command), COMMAND_CHANGE_CLASS, netdev->name,
-             TC_QDISC, TC_ROOT_CLASS, TC_QDISC, class_id, actual_rate,
-             netdev->speed*1000 );
+             TC_QDISC, TC_ROOT_CLASS, TC_QDISC, class_id, actual_min_rate,
+             actual_max_rate);
+
     if (system(command) != 0) {
         VLOG_ERR("Problem configuring class %d for device %s",
                  class_id, netdev->name);
@@ -459,7 +473,7 @@ netdev_setup_slicing(struct netdev *netdev, uint16_t num_queues)
     /* we configure a default class. This would be the best-effort, getting
      * everything that remains from the other queues.tc requires a min-rate
      * to configure a class, we put a min_rate here */
-    error = netdev_setup_class(netdev,TC_DEFAULT_CLASS,1);
+    error = netdev_setup_class(netdev,TC_DEFAULT_CLASS,1,1000);
     if (error) {
         return error;
     }

@@ -888,11 +888,15 @@ OFP_ASSERT(sizeof(struct ofp_vendor_header) == 12);
 /* Min rate > 1000 means not configured. */
 #define OFPQ_MIN_RATE_UNCFG      0xffff
 
+/* Max rate > 1000 means not configured. */
+#define OFPQ_MAX_RATE_UNCFG      0xffff
+
 enum ofp_queue_properties {
     OFPQT_NONE = 0,       /* No property defined for queue (default). */
     OFPQT_MIN_RATE,       /* Minimum datarate guaranteed. */
                           /* Other types should be added here
                            * (i.e. max rate, precedence, etc). */
+    OFPQT_MAX_RATE,       /* Following in the footsteps of OF 1.2 and Indigo firmware */
 };
 
 /* Common description for a queue. */

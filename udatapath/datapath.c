@@ -973,20 +973,24 @@ static void
 fill_queue_desc(struct ofpbuf *buffer, struct sw_queue *q,
                 struct ofp_packet_queue *desc)
 {
-    struct ofp_queue_prop_min_rate *mr;
+    struct ofp_queue_prop_min_rate *prop;
     int len;
 
     len = sizeof(struct ofp_packet_queue) +
-        sizeof(struct ofp_queue_prop_min_rate);
+        2 * sizeof(struct ofp_queue_prop_min_rate);
     desc->queue_id = htonl(q->queue_id);
     desc->len = htons(len);
 
-    /* Property list */
-    mr = ofpbuf_put_zeros(buffer, sizeof *mr);
-    mr->prop_header.property = htons(OFPQT_MIN_RATE);
-    len = sizeof(struct ofp_queue_prop_min_rate);
-    mr->prop_header.len = htons(len);
-    mr->rate = htons(q->min_rate);
+    /* Property list: Always fill min/max entries */
+    prop = ofpbuf_put_zeros(buffer, sizeof *prop);
+    prop->prop_header.property = htons(OFPQT_MIN_RATE);
+    prop->prop_header.len = htons(sizeof(struct ofp_queue_prop_min_rate));
+    prop->rate = htons(q->min_rate);
+
+    prop = ofpbuf_put_zeros(buffer, sizeof *prop);
+    prop->prop_header.property = htons(OFPQT_MAX_RATE);
+    prop->prop_header.len = htons(sizeof(struct ofp_queue_prop_min_rate));
+    prop->rate = htons(q->max_rate);
 }
 
 
